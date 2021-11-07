@@ -11,6 +11,8 @@
     "format": "prettier --write src"
   },
   "dependencies": {
+    "@nivo/core": "^0.74.0",
+    "@nivo/line": "^0.74.0",
     "react": "^17.0.0",
     "react-dom": "^17.0.0"
   },
