@@ -11,16 +11,17 @@ We want to make crystal clear analytics.
 
 ### Front
 
-- Lang: Typescript
-- General Framework: ??
-- UI: React
-- State: Zustand
-- Style: Tailwind
-- Theme: Glass Morphism + cyberpunk
-- Build: Vite + esbuild -> bundle, tooling
-- lint + prettier
-- Hosting: Firebase
-- DB: Firestore
+- [x] Lang: Typescript
+- [x] UI: React
+- [ ] State: Zustand
+- [x] Style: Tailwind
+- [x] Theme: Glass Morphism + cyberpunk
+- [x] Build: Vite + esbuild -> bundle, tooling
+- [x] lint + prettier
+- [x] dataviz: https://nivo.rocks
+- [ ] table: react table https://www.samuelliedtke.com/blog/react-table-tutorial-part-1/
+- [ ] Hosting: Firebase https://www.npmjs.com/package/firebase-tools
+- [ ] DB: Firestore
   - API: FS avec des événement bidirectionnels pour update front dynamiquement sans api
 
 ### Data pipeline: -> gcr (google cloud run)
@@ -32,9 +33,9 @@ We want to make crystal clear analytics.
 
 ### Web3
 
-- Smart Contract pour l’abonnement
-- Zeppelin
-- Truffle + ganache
+- [ ] SC: Smart Contract pour l’abonnement
+  - [ ] Zeppelin
+- [ ] Tooling: Truffle + ganache
 
 # TODO
 
