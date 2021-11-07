@@ -13,6 +13,7 @@
   "dependencies": {
     "@nivo/core": "^0.74.0",
     "@nivo/line": "^0.74.0",
+    "firebase": "^9.3.0",
     "react": "^17.0.0",
     "react-dom": "^17.0.0",
     "react-table": "^7.7.0"
@@ -23,9 +24,14 @@
     "@babel/preset-typescript": "^7.16.0",
     "@testing-library/jest-dom": "^5.15.0",
     "@testing-library/react": "^12.1.2",
+    "@types/d3-color": "^3.0.2",
+    "@types/d3-scale": "^4.0.2",
+    "@types/d3-scale-chromatic": "^3.0.0",
+    "@types/d3-shape": "^3.0.2",
     "@types/jest": "^27.0.2",
     "@types/react": "^17.0.0",
     "@types/react-dom": "^17.0.0",
+    "@types/react-motion": "^0.0.32",
     "@types/react-table": "^7.7.7",
     "@typescript-eslint/eslint-plugin": "^5.3.0",
     "@typescript-eslint/parser": "^5.3.0",
