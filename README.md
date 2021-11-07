@@ -19,8 +19,8 @@ We want to make crystal clear analytics.
 - [x] Build: Vite + esbuild -> bundle, tooling
 - [x] lint + prettier
 - [x] dataviz: https://nivo.rocks
-- [ ] table: react table https://www.samuelliedtke.com/blog/react-table-tutorial-part-1/
-- [ ] Hosting: Firebase https://www.npmjs.com/package/firebase-tools
+- [x] table: react table https://www.samuelliedtke.com/blog/react-table-tutorial-part-1/
+- [x] Hosting: Firebase https://www.npmjs.com/package/firebase-tools
 - [ ] DB: Firestore
   - API: FS avec des événement bidirectionnels pour update front dynamiquement sans api
 
@@ -39,4 +39,4 @@ We want to make crystal clear analytics.
 
 # TODO
 
-- [ ] Hello world Front with Next + vite + tailwind + firebase deploy
+- [x] Hello world Front with Next + vite + tailwind + firebase deploy
