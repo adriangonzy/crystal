@@ -13,7 +13,10 @@ interface LineProps {
 export const Line: React.FunctionComponent<LineProps> = ({ data }) => (
   <ResponsiveLine
     data={data}
-    margin={{ top: 10, right: 30, bottom: 50, left: 60 }}
+    theme={{
+      textColor: 'white',
+    }}
+    margin={{ top: 10, right: 10, bottom: 30, left: 30 }}
     xScale={{ type: 'point' }}
     yScale={{
       type: 'linear',
@@ -24,7 +27,7 @@ export const Line: React.FunctionComponent<LineProps> = ({ data }) => (
     }}
     axisBottom={{
       tickSize: 0,
-      tickRotation: -25,
+      tickRotation: 0,
     }}
     axisLeft={{
       tickSize: 0,
