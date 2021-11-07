@@ -1,4 +1,4 @@
-import { Card, Line } from './components'
+import { Card, Line, Table } from './components'
 import { data as testData } from './test-data'
 
 export default function App() {
@@ -22,7 +22,7 @@ export default function App() {
           </Card>
           <Card>
             <div className="h-96" key="table">
-              <div>TABLE</div>
+              <Table />
             </div>
           </Card>
         </div>
