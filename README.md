@@ -40,3 +40,4 @@ We want to make crystal clear analytics.
 # TODO
 
 - [x] Hello world Front with Next + vite + tailwind + firebase deploy
+- [ ] add husky hooks for format and lint

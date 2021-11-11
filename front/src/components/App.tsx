@@ -1,5 +1,5 @@
-import { Card, Line, Table } from './components'
-import { lineData, tableColumns, tableData } from './test-data'
+import { Card, Line, Table } from '.'
+import { lineData, tableColumns, tableData } from '../test-data'
 
 export default function App() {
   return (
