@@ -12,15 +12,18 @@ export const Table: React.FunctionComponent<TableProps> = ({
     useTable({ columns, data })
 
   return (
-    <table {...getTableProps()} className="min-w-full divide-y divide-gray-200">
+    <table
+      {...getTableProps()}
+      className="min-w-full divide-y divide-gray-200 table-fixed"
+    >
       <thead>
         {headerGroups.map((headerGroup) => (
-          <tr {...headerGroup.getHeaderGroupProps()} key={headerGroup.id}>
+          <tr {...headerGroup.getHeaderGroupProps()} key="headers">
             {headerGroup.headers.map((column) => (
               <th
                 {...column.getHeaderProps()}
                 key={column.id}
-                className="py-3 px-6 text-xs font-medium 
+                className="py-3 px-6 text-xs font-medium
                 tracking-wider text-left text-gray-100 uppercase"
               >
                 {column.render('Header')}
@@ -38,7 +41,7 @@ export const Table: React.FunctionComponent<TableProps> = ({
                 return (
                   <td
                     {...cell.getCellProps()}
-                    key={cell.value}
+                    key={cell.row.id + cell.column.id + ''}
                     className="py-4 px-6 whitespace-nowrap"
                   >
                     {cell.render('Cell')}
