@@ -1,0 +1,7 @@
+# created by virtualenv automatically
+bin
+lib
+pyvenv.cfg
+external_gateway
+.env
+*.zip

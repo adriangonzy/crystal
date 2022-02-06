@@ -1,0 +1,23 @@
+# exclude SafeMath when calculating test coverage
+# https://eth-brownie.readthedocs.io/en/v1.10.3/config.html#exclude_paths
+reports:
+  exclude_contracts:
+    - SafeMath
+dependencies:
+  - OpenZeppelin/openzeppelin-contracts@4.2.0
+compiler:
+  solc:
+    remappings:
+      - "@openzeppelin=OpenZeppelin/openzeppelin-contracts@4.2.0"
+# automatically fetch contract sources from Etherscan
+autofetch_sources: true
+dotenv: .env
+networks:
+  default: development
+  mainnet-fork:
+    mev_bot: "0xc4595e3966e0ce6e3c46854647611940a09448d3"
+    karafuru: "0xd2f668a8461d6761115daf8aeb3cdf5f40c532c6"
+    eth_usd_price_feed: "0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419"
+wallets:
+  flashbot-signer: ${ETH_SIGNATURE_KEY}
+  test: ${TEST_PRIVATE_KEY}
