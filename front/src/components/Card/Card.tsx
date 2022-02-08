@@ -2,20 +2,28 @@ import { PropsWithChildren } from 'react'
 
 export interface CardProps {
   title?: string
+  variant: 'glass' | 'paper'
+}
+
+const variants = {
+  glass: `bg-opacity-25 bg-white border border-r-0 border-l-0 border-b-0`,
+  paper: `bg-opacity-40 bg-white border-purple-500 h-full`,
 }
 
 export const Card: React.FunctionComponent<PropsWithChildren<CardProps>> = ({
   title,
+  variant,
   children,
 }) => {
   return (
     <div
-      className="py-4 px-8 text-white bg-white bg-opacity-20 
-                rounded-lg border border-r-0 border-b-0 border-opacity-30 
-                shadow-5xl backdrop-filter backdrop-blur-sm"
+      className={`py-4 px-6 text-purple-900 rounded-lg backdrop-filter 
+      backdrop-blur-sm shadow-3xl ${variants[variant]}`}
     >
       {title && (
-        <h2 className="mb-4 text-xl font-bold text-white uppercase">{title}</h2>
+        <h2 className="mb-4 text-2xl font-bold text-purple-700 uppercase">
+          {title}
+        </h2>
       )}
       {children}
     </div>

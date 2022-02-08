@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "license": "MIT",
   "scripts": {
-    "clean": "rm -rf ./dist && rm -rf ./coverage && rm node_modules/.yarn-integrity && rm yarn.lock",
+    "clean": "rm -rf ./dist && rm -rf ./coverage && rm node_modules/.yarn-integrity",
     "dev": "vite",
     "build": "tsc && vite build",
     "serve": "vite preview",
@@ -14,6 +14,9 @@
   "dependencies": {
     "@nivo/core": "^0.74.0",
     "@nivo/line": "^0.74.0",
+    "@usedapp/core": "^0.11.0",
+    "classnames": "^2.3.1",
+    "ethers": "^5.5.4",
     "firebase": "^9.3.0",
     "isomorphic-fetch": "^3.0.0",
     "lodash": "^4.17.21",
@@ -50,7 +53,7 @@
     "postcss": "^8.3.11",
     "prettier": "^2.4.1",
     "prettier-plugin-organize-imports": "^2.3.4",
-    "tailwindcss": "^2.2.19",
+    "tailwindcss": "^3.0.18",
     "typescript": "^4.3.2",
     "vite": "^2.6.4"
   },
