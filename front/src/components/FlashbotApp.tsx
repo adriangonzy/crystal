@@ -34,7 +34,7 @@ export default function FlashbotApp() {
             </Card>
             <Card
               variant="glass"
-              title={`Error${error ? ` - ${error.name}` : ''}`}
+              title={`Error${error && error.name ? ` - ${error.name}` : ''}`}
               key="error"
             >
               {error ? error.message : 'No error'}
