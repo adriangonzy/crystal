@@ -13,10 +13,15 @@ compiler:
 autofetch_sources: true
 dotenv: .env
 networks:
+  development:
+    cmd_settings:
+      unlock:
+        - 0x83e7fc69d7c99943afd9122ad0f8bb575e00597c
   default: development
   mainnet-fork:
     mev_bot: "0xc4595e3966e0ce6e3c46854647611940a09448d3"
     karafuru: "0xd2f668a8461d6761115daf8aeb3cdf5f40c532c6"
+    nt_land_deeds: "0x3c54b798b3aad4f6089533af3bdbd6ce233019bb"
     eth_usd_price_feed: "0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419"
 wallets:
   flashbot-signer: ${ETH_SIGNATURE_KEY}
