@@ -9,7 +9,7 @@ import {
   RelayResponseError,
 } from '@flashbots/ethers-provider-bundle'
 import { ethers } from 'ethers'
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 
 export interface Env {
   chainId: number
@@ -82,70 +82,97 @@ export const useFlashbots = () => {
     )
   }, [provider, signer])
 
-  const simulateBundle = async (blocksInTheFutur: number) => {
-    if (!flashbotsProvider) throw new Error('Flashbots Provider Required')
+  const simulateBundle = useCallback(
+    async (blocksInTheFutur: number) => {
+      if (!flashbotsProvider) throw new Error('Flashbots Provider Required')
 
-    const blockNumber = await provider.getBlockNumber()
-    const targetBlockNumber = blockNumber + blocksInTheFutur
+      const blockNumber = await provider.getBlockNumber()
+      const targetBlockNumber = blockNumber + blocksInTheFutur
 
-    const simulation = await flashbotsProvider.simulate(
-      await signBundle(bundle),
-      targetBlockNumber
-    )
-    if ('error' in simulation) {
-      window.alert(
-        'There was some error in the flashbots simulation, please read the bundle receipt'
-      )
-      console.error(simulation.error)
-      return [simulation, simulation.error]
-    }
-    window.alert(
-      'Flashbots simulation was a success: ' +
-        JSON.stringify(simulation, null, 2)
-    )
-    return [simulation, undefined]
-  }
-
-  const sendBundle = async (
-    blocksInTheFutur: number,
-    handleSubmission: (
-      submission: FlashbotsTransaction
-    ) => Promise<FlashbotsBundleResolution | RelayResponseError>
-  ) => {
-    if (!flashbotsProvider) throw new Error('Flashbots Provider Required')
-
-    provider.off('block')
-    const blockNumber = await provider.getBlockNumber()
-    const targetBlockNumber = blockNumber + blocksInTheFutur
-
-    const signedBundle = await signBundle(bundle)
-    const signedOrderedBundle = signedBundle.rawTxs.reverse()
-
-    const [, error] = await simulateBundle(blocksInTheFutur)
-    if (error) return
-
-    provider.on('block', async (blockNumber) => {
-      console.log(`Block #${blockNumber}`)
-      const submission = await flashbotsProvider.sendBundle(
-        signedOrderedBundle,
+      const simulation = await flashbotsProvider.simulate(
+        await signBundle(bundle),
         targetBlockNumber
       )
-      await handleSubmission(submission)
-      provider.off('block')
-    })
-  }
-
-  const getMaxBaseFee = async (blocksInTheFuture: number) => {
-    const block = await provider.getBlock(await provider.getBlockNumber())
-
-    const maxBaseFeeInFutureBlock = block.baseFeePerGas
-      ? FlashbotsBundleProvider.getMaxBaseFeeInFutureBlock(
-          block.baseFeePerGas,
-          blocksInTheFuture
+      if ('error' in simulation) {
+        window.alert(
+          'There was some error in the flashbots simulation, please read the bundle receipt'
         )
-      : 0
-    return maxBaseFeeInFutureBlock
-  }
+        console.error(simulation.error)
+        return [simulation, simulation.error]
+      }
+      window.alert(
+        'Flashbots simulation was a success: ' +
+          JSON.stringify(simulation, null, 2)
+      )
+      return [simulation, undefined]
+    },
+    [bundle, flashbotsProvider, provider]
+  )
+
+  const sendBundle = useCallback(
+    async (
+      blocksInTheFutur: number,
+      handleSubmission: (
+        submission: FlashbotsTransaction
+      ) => Promise<FlashbotsBundleResolution | RelayResponseError>
+    ) => {
+      if (!flashbotsProvider) throw new Error('Flashbots Provider Required')
+
+      provider.off('block')
+      const blockNumber = await provider.getBlockNumber()
+      const targetBlockNumber = blockNumber + blocksInTheFutur
+
+      const signedBundle = await signBundle(bundle)
+      const signedOrderedBundle = signedBundle.rawTxs.reverse()
+
+      const [, error] = await simulateBundle(blocksInTheFutur)
+      if (error) return
+
+      provider.on('block', async (blockNumber) => {
+        console.log(`Block #${blockNumber}`)
+        const submission = await flashbotsProvider.sendBundle(
+          signedOrderedBundle,
+          targetBlockNumber
+        )
+        await handleSubmission(submission)
+        provider.off('block')
+      })
+    },
+    [bundle, flashbotsProvider, provider, simulateBundle]
+  )
+
+  const getMaxBaseFee = useCallback(
+    async (blocksInTheFuture: number) => {
+      const block = await provider.getBlock(await provider.getBlockNumber())
+
+      const maxBaseFeeInFutureBlock = block.baseFeePerGas
+        ? FlashbotsBundleProvider.getMaxBaseFeeInFutureBlock(
+            block.baseFeePerGas,
+            blocksInTheFuture
+          )
+        : 0
+      return maxBaseFeeInFutureBlock
+    },
+    [provider]
+  )
+
+  const addTransaction = useCallback(
+    (tx: TransactionRequest) => {
+      setBundle([
+        ...bundle,
+        {
+          transaction: tx,
+          signer: provider.getSigner(),
+        },
+      ])
+    },
+    [bundle, provider]
+  )
+
+  const removeTransaction = useCallback(
+    (index: number) => setBundle(bundle.filter((_, i) => i !== index)),
+    [bundle]
+  )
 
   return {
     bundle,
@@ -153,14 +180,7 @@ export const useFlashbots = () => {
     simulateBundle,
     sendBundle,
     getMaxBaseFee,
-    addTransaction: (tx: TransactionRequest) => {
-      bundle.push({
-        transaction: tx,
-        signer: provider.getSigner(),
-      })
-      setBundle(bundle)
-    },
-    removeTransaction: (index: number) =>
-      setBundle(bundle.filter((_, i) => i !== index)),
+    addTransaction,
+    removeTransaction,
   }
 }

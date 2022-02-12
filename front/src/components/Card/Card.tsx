@@ -21,7 +21,7 @@ export const Card: React.FunctionComponent<PropsWithChildren<CardProps>> = ({
       backdrop-blur-sm shadow-3xl ${variants[variant]}`}
     >
       {title && (
-        <h2 className="mb-4 text-2xl font-bold text-purple-700 uppercase">
+        <h2 className="mb-4 text-2xl font-bold text-transparent uppercase bg-clip-text bg-gradient-to-r to-black from-fuchsia-500">
           {title}
         </h2>
       )}

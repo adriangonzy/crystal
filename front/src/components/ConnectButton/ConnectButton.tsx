@@ -10,7 +10,7 @@ export const ConnectButton: React.FunctionComponent<ConnectButtonProps> = ({
   return (
     <button
       className="self-start p-3 font-bold backdrop-filter 
-      backdrop-blur-sm shadow-3xl text-purple-700 bg-purple-300 bg-opacity-60 rounded-2xl border border-purple-300"
+      backdrop-blur-sm shadow-3xl text-purple-700 bg-fuchsia-300 bg-opacity-60 rounded-2xl ring-2 ring-white "
       onClick={onClick}
     >
       {!account ? 'Connect' : account}

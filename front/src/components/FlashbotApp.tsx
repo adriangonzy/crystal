@@ -5,9 +5,11 @@ import {
 import { useEthers, useNotifications } from '@usedapp/core'
 import { useCallback } from 'react'
 import { Card } from '.'
+import { Button } from './Button/Button'
 import { ConnectButton } from './ConnectButton/ConnectButton'
 import { FlashbotForm } from './FlashbotsForm/FlashbotsForm'
 import { useFlashbots } from './FlashbotsForm/useFlashbots'
+import { TransationItem } from './TransactionItem/TransactionItem'
 
 const handleSubmission = async (submission: FlashbotsTransaction) => {
   if ('error' in submission) {
@@ -45,8 +47,11 @@ export default function FlashbotApp() {
     simulateBundle,
     sendBundle,
     addTransaction,
+    removeTransaction,
     getMaxBaseFee,
   } = useFlashbots()
+
+  console.log('App render', bundle)
 
   const onSendBundle = useCallback(() => {
     sendBundle(1, handleSubmission)
@@ -73,38 +78,44 @@ export default function FlashbotApp() {
   return (
     <div className="w-screen h-screen bg-gradient-to-br from-fuchsia-300 to-amber-300">
       {/* Container */}
-      <div className="flex flex-col px-4 pb-4 mx-auto w-2/3 h-full">
+      <div className="flex flex-col px-4 pb-4 mx-auto w-5/6 h-full">
         {/* Header */}
         <div className="flex justify-end py-8 w-full">
           <ConnectButton account={account} onClick={activate} />
         </div>
         {/* Cards */}
-        <div className="flex-1 space-y-6 h-full">
+        <div className="flex-1 space-y-6">
           <div className="grid grid-cols-2 gap-6">
             <FlashbotForm
               addTransaction={addTransaction}
               getMaxBaseFee={getMaxBaseFee}
             />
             <Card variant="glass" title="Transactions" key="transactions">
-              <div className="flex flex-col justify-end items-center space-y-8 w-full">
-                <button
-                  className="w-2/3 h-12 bg-opacity-40 rounded-lg shadow-xl border-1 bg-amber-100 border-fuchsia-400"
-                  onClick={onSendBundle}
-                >
-                  Sign Bundle
-                </button>
-                <button
-                  className="w-2/3 h-12 bg-opacity-40 rounded-lg shadow-xl border-1 bg-amber-100 border-fuchsia-400"
-                  onClick={onSimulateBundle}
-                >
-                  Simulate Bundle
-                </button>
-                <button
-                  className="w-2/3 h-12 bg-opacity-40 rounded-lg shadow-xl border-1 bg-amber-100 border-fuchsia-400"
-                  onClick={onSignBundle}
-                >
-                  Send Bundle
-                </button>
+              <div className="flex flex-col justify-between h-full">
+                <div className="overflow-scroll max-h-1/2">
+                  {bundle.map((tx, i) => (
+                    <TransationItem
+                      name={`Tx #${i}`}
+                      tx={tx}
+                      key={i}
+                      onRemove={() => removeTransaction(i)}
+                    />
+                  ))}
+                  {bundle.length === 0 && (
+                    <div>No transactions added to bundle</div>
+                  )}
+                </div>
+                <div className="flex flex-row justify-between items-center mb-20 w-full align-end">
+                  <div className="flex-1 mx-4">
+                    <Button text="Sign Bundle" onClick={onSendBundle} />
+                  </div>
+                  <div className="flex-1 mx-4">
+                    <Button text="Simulate Bundle" onClick={onSimulateBundle} />
+                  </div>
+                  <div className="flex-1 mx-4">
+                    <Button text="Send Bundle" onClick={onSignBundle} />
+                  </div>
+                </div>
               </div>
             </Card>
           </div>
