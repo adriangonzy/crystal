@@ -75,6 +75,8 @@ export default function FlashbotApp() {
     for (const notification in notifications) console.log(notification)
   }
 
+  console.log(bundle)
+
   return (
     <div className="w-screen h-screen bg-gradient-to-br from-fuchsia-300 to-amber-300">
       {/* Container */}
@@ -86,13 +88,19 @@ export default function FlashbotApp() {
         {/* Cards */}
         <div className="flex-1 space-y-6">
           <div className="grid grid-cols-2 gap-6">
-            <FlashbotForm
-              addTransaction={addTransaction}
-              getMaxBaseFee={getMaxBaseFee}
-            />
-            <Card variant="glass" title="Transactions" key="transactions">
+            <Card
+              variant="glass"
+              title="New Transaction"
+              key="new-transaction-form"
+            >
+              <FlashbotForm
+                addTransaction={addTransaction}
+                getMaxBaseFee={getMaxBaseFee}
+              />
+            </Card>
+            <Card variant="glass" title="Bundle" key="bundle">
               <div className="flex flex-col justify-between h-full">
-                <div className="overflow-scroll max-h-1/2">
+                <div className="overflow-scroll bg-opacity-0">
                   {bundle.map((tx, i) => (
                     <TransationItem
                       name={`Tx #${i}`}

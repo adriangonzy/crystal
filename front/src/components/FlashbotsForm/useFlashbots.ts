@@ -1,6 +1,5 @@
 import { TransactionRequest } from '@ethersproject/abstract-provider'
 import {
-  DEFAULT_FLASHBOTS_RELAY,
   FlashbotsBundleProvider,
   FlashbotsBundleRawTransaction,
   FlashbotsBundleResolution,
@@ -37,33 +36,21 @@ const config: Record<string, Env> = {
   },
 }
 
-const getBundleFromRelay = async (id: string) => {
-  const bundle = await fetch(`${DEFAULT_FLASHBOTS_RELAY}/bundle?id=${id}`)
-  return await bundle.json()
-}
+// const getBundleFromRelay = async (id: string) => {
+//   const bundle = await fetch(`${DEFAULT_FLASHBOTS_RELAY}/bundle?id=${id}`)
+//   return await bundle.json()
+// }
 
-const signBundle = async (bundle: FlashbotsBundle) => {
-  // TODO here sign transactions not send
-
-  // WTF dude are you doing here ???
-  // for (const index in transactions){
-  //   await signer.sendTransaction(transactions[index].transaction);
-  // }
-  // could use -> https://eth.wiki/json-rpc/API#eth_signTransaction instead ?
-  console.log(bundle)
-  return bundle as any
-}
-
-const getEncodedFunctionCallData = () => {
-  // if (ABI != '' && calldata != '') {
-  //   return new ethers.utils.Interface(['function ' + ABI]).encodeFunctionData(
-  //     ABI,
-  //     calldata.split(' ')
-  //   )
-  // } else {
-  return '0x'
-  // }
-}
+// const getEncodedFunctionCallData = () => {
+//   // if (ABI != '' && calldata != '') {
+//   //   return new ethers.utils.Interface(['function ' + ABI]).encodeFunctionData(
+//   //     ABI,
+//   //     calldata.split(' ')
+//   //   )
+//   // } else {
+//   return '0x'
+//   // }
+// }
 
 export const useFlashbots = () => {
   const provider = useMemo(
@@ -81,6 +68,99 @@ export const useFlashbots = () => {
       setFlashbotsProvider
     )
   }, [provider, signer])
+
+  const signBundle = useCallback(
+    async (bundle: FlashbotsBundle) => {
+      if (!flashbotsProvider) throw new Error('Flashbots Provider Required')
+
+      // see ERC-712
+      // TODO: get MEVBriber abi
+      const abi = new ethers.utils.Interface([
+        'Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)',
+      ])
+
+      const data = JSON.stringify({
+        domain: {
+          // Defining the chain aka Rinkeby testnet or Ethereum Main Net
+          chainId: config['dev'].chainId,
+          // Give a user friendly name to the specific contract you are signing for.
+          name: 'MEVBriber',
+          // If name isn't enough add verifying contract to make sure you are establishing contracts with the proper entity
+          // https://kndrck.co/posts/making_flashbots_work_in_browser/
+          verifyingContract: '0xf26F7dAa038651F6eFcA888E91ecbeC8e231035e', // TODO: MevBriver on mainnet -> needs to be mocked on goerli
+          // Just let's you know the latest version. Definitely make sure the field name is correct.
+          version: '1',
+        },
+
+        // Defining the message signing data content.
+        message: abi._abiCoder.encode(
+          [
+            'bytes32 permit_hash',
+            'address owner',
+            'address spender',
+            'uint256 value',
+            'uint256 nonce',
+            'uint256 deadline',
+          ],
+          [
+            '', // TODO access the value in the MevBriber contract abi directly
+            provider.getSigner()._address,
+            '0xf26F7dAa038651F6eFcA888E91ecbeC8e231035e',
+            0, // TODO use value from form
+            1, // TODO here we need to call the nonces of the mevbriber contract for the owner / sender
+            -1, // TODO add a deadline
+          ]
+        ),
+      })
+
+      const response = await provider.send('eth_signTypedData_v4', [
+        provider.getSigner(),
+        data,
+      ])
+
+      console.log(response)
+      const v = '' // TODO extract from signature
+      const r = '' // TODO extract from signature
+      const s = '' // TODO extract from signature
+
+      // todo: we need to add an approve transact for the mevbriber by the owner to make this work
+      // -> fuck with current version of the mevbriber, that uses weth9 we cannot sign approvals offchain...
+      // -> needs to be a manual approval with gas...
+      // -> TODO: deploy and improved version of the mevbriber using weth10 with off chain approval
+
+      bundle = bundle.concat({
+        // bribe transact at the end
+        transaction: {
+          to: '0xf26F7dAa038651F6eFcA888E91ecbeC8e231035e',
+          data: abi.encodeFunctionData('check32BytesAndSendWETH', [
+            provider.getSigner()._address,
+            '0xf26F7dAa038651F6eFcA888E91ecbeC8e231035e',
+            0, // TODO use value from form
+            -1, // TODO add a deadline
+            v,
+            r,
+            s,
+            'target', // todo this will need to implement a way to define the condition for the bribe to pass
+            'payload', // todo this will need to implement a way to define the condition for the bribe to pass
+            'expected_result', // todo this will need to implement a way to define the condition for the bribe to pass
+          ]),
+        },
+        signer,
+      })
+
+      const signedBundle = await flashbotsProvider.signBundle(bundle)
+      console.log(signedBundle)
+      return signedBundle as any
+    },
+    [flashbotsProvider, provider, signer]
+  )
+
+  // TODO 1 transactions
+  // - one for bribing with the random wallet
+  // -  This later will need that we sign the permission of the owner of weth to the random signer for bribing
+  // -> this will need a call to metamask
+  // Mev briber deployed here https://etherscan.io/address/0xf26F7dAa038651F6eFcA888E91ecbeC8e231035e#code
+  const getMevBriberTransaction = (tx: FlashbotsBundleTransaction) => {}
 
   const simulateBundle = useCallback(
     async (blocksInTheFutur: number) => {
@@ -106,7 +186,7 @@ export const useFlashbots = () => {
       )
       return [simulation, undefined]
     },
-    [bundle, flashbotsProvider, provider]
+    [bundle, flashbotsProvider, provider, signBundle]
   )
 
   const sendBundle = useCallback(
@@ -138,7 +218,7 @@ export const useFlashbots = () => {
         provider.off('block')
       })
     },
-    [bundle, flashbotsProvider, provider, simulateBundle]
+    [bundle, flashbotsProvider, provider, signBundle, simulateBundle]
   )
 
   const getMaxBaseFee = useCallback(
@@ -162,11 +242,11 @@ export const useFlashbots = () => {
         ...bundle,
         {
           transaction: tx,
-          signer: provider.getSigner(),
+          signer: signer,
         },
       ])
     },
-    [bundle, provider]
+    [bundle, signer]
   )
 
   const removeTransaction = useCallback(

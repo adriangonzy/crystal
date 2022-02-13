@@ -19,7 +19,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
       errorMessage,
       // we dont want ref to be in rest otherwise it replaces the forwarded ref
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      ref: unusedParentRef,
+      // ref: unusedParentRef,
       ...rest
     },
     ref
@@ -28,10 +28,10 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
       <label htmlFor={rest.name}>{label}</label>
       <input
         className="block px-2 mt-1 w-full h-10 focus:bg-white bg-opacity-10 rounded-md border-0 border-transparent focus:ring-2 focus:ring-fuchsia-500"
-        ref={ref}
         defaultValue={defaultValue}
         type={type}
         {...rest}
+        ref={ref}
       />
       {error && <div className="text-red-500">{errorMessage}</div>}
     </>
