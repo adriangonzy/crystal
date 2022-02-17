@@ -115,13 +115,13 @@ export default function FlashbotApp() {
                 </div>
                 <div className="flex flex-row justify-between items-center mb-20 w-full align-end">
                   <div className="flex-1 mx-4">
-                    <Button text="Sign Bundle" onClick={onSendBundle} />
+                    <Button text="Sign Bundle" onClick={onSignBundle} />
                   </div>
                   <div className="flex-1 mx-4">
                     <Button text="Simulate Bundle" onClick={onSimulateBundle} />
                   </div>
                   <div className="flex-1 mx-4">
-                    <Button text="Send Bundle" onClick={onSignBundle} />
+                    <Button text="Send Bundle" onClick={onSendBundle} />
                   </div>
                 </div>
               </div>
