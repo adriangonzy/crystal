@@ -1,8 +1,9 @@
 import { Config, DAppProvider, Mainnet } from '@usedapp/core'
 import React from 'react'
 import ReactDOM from 'react-dom'
+import { BrowserRouter } from 'react-router-dom'
 import './components/App.css'
-import FlashbotApp from './components/FlashbotApp'
+import { AppRoutes } from './components/AppRoutes'
 
 const config: Config = {
   readOnlyChainId: Mainnet.chainId,
@@ -15,7 +16,9 @@ const config: Config = {
 ReactDOM.render(
   <React.StrictMode>
     <DAppProvider config={config}>
-      <FlashbotApp />
+      <BrowserRouter>
+        <AppRoutes />
+      </BrowserRouter>
     </DAppProvider>
   </React.StrictMode>,
   document.getElementById('root')

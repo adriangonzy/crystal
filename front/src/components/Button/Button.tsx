@@ -1,18 +1,23 @@
 export interface ButtonProps {
-  text: string
-  onClick: () => void
+  onClick?: () => void
+  icon?: JSX.Element
+  className?: string
 }
 
 export const Button: React.FunctionComponent<ButtonProps> = ({
-  text,
+  children,
   onClick,
+  icon,
+  className = 'hover:bg-purple-700',
 }) => {
   return (
     <button
-      className="w-full h-12 text-purple-700 bg-opacity-40 rounded-lg ring-2 ring-white shadow-xl border-1 bg-amber-100 border-fuchsia-400"
       onClick={onClick}
+      className={`flex flex-row justify-between items-center py-2 px-4 hover:text-white bg-white 
+     bg-opacity-70 hover:bg-opacity-100 rounded-lg border-2 border-white ${className}`}
     >
-      {text}
+      {!!icon && <span className="px-1">{icon}</span>}
+      {children}
     </button>
   )
 }

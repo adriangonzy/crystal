@@ -27,7 +27,8 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     <>
       <label htmlFor={rest.name}>{label}</label>
       <input
-        className="block px-2 mt-1 w-full h-10 focus:bg-white bg-opacity-10 rounded-md border-0 border-transparent focus:ring-2 focus:ring-fuchsia-500"
+        className="block px-2 mt-1 w-full h-10 bg-purple-200 bg-opacity-50 focus:bg-opacity-60 
+        rounded-md border-0 border-transparent focus:ring-2 focus:ring-purple-700 focus:bg-amber-100"
         defaultValue={defaultValue}
         type={type}
         {...rest}

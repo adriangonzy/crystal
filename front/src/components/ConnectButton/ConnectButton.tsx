@@ -1,3 +1,6 @@
+import { BsWallet2 } from 'react-icons/bs'
+import { Button } from '../Button/Button'
+
 export interface ConnectButtonProps {
   account?: string | null
   onClick: () => void
@@ -8,12 +11,10 @@ export const ConnectButton: React.FunctionComponent<ConnectButtonProps> = ({
   onClick,
 }) => {
   return (
-    <button
-      className="self-start p-3 font-bold backdrop-filter 
-      backdrop-blur-sm shadow-3xl text-purple-700 bg-fuchsia-300 bg-opacity-60 rounded-2xl ring-2 ring-white "
-      onClick={onClick}
-    >
-      {!account ? 'Connect' : account}
-    </button>
+    <Button icon={<BsWallet2 className="text-xs" />} onClick={onClick}>
+      <span className="overflow-hidden font-bold text-ellipsis max-w-[theme(spacing.48)]">
+        {!account ? 'Connect' : account}
+      </span>
+    </Button>
   )
 }

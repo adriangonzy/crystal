@@ -1,3 +1,40 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer components {
+  .bg-gradient {
+    background: linear-gradient(
+        45deg,
+        #fde68a,
+        #fcd34d,
+        #f87171,
+        #d946ef,
+        #38bdf8,
+        #2dd4bf,
+        #2dd4bf
+      )
+      0% 0% / 500% 500%;
+    animation: 30s ease 0s infinite normal none running gradient;
+  }
+
+  @keyframes gradient {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
+  .no-scroll-bars {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .no-scroll-bars::-webkit-scrollbar {
+    display: none;
+  }
+}

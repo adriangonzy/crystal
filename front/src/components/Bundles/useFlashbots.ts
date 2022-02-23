@@ -1,104 +1,52 @@
-import { TransactionRequest } from '@ethersproject/abstract-provider'
-import { ethers } from 'ethers'
-import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
+  DEFAULT_FLASHBOTS_RELAY,
   FlashbotsBundleProvider,
-  FlashbotsBundleRawTransaction,
   FlashbotsBundleResolution,
-  FlashbotsBundleTransaction,
   FlashbotsTransaction,
   RelayResponseError,
-} from '../../ethers-flashbots-provider'
+} from '@flashbots/ethers-provider-bundle'
+import { ethers } from 'ethers'
+import { useCallback, useEffect, useState } from 'react'
+import { StoredBundle } from './useBundles'
 
-export interface Env {
-  chainId: number
-  relay: string
+const randomSigner = ethers.Wallet.createRandom()
+const provider = new ethers.providers.Web3Provider(window.ethereum)
+
+const convertToFlashbotsBundle = (storedBundle: StoredBundle) => {
+  return storedBundle.transactions.map((stx) => ({
+    signer: provider.getSigner(stx.signer),
+    transaction: stx.transaction,
+  }))
 }
 
-export declare type FlashbotsBundle = Array<
-  FlashbotsBundleTransaction | FlashbotsBundleRawTransaction
->
-
-export interface FlashbotsContextInterface {
-  provider: ethers.providers.Web3Provider
-  flashbotsProvider: FlashbotsBundleProvider
-  bundle: FlashbotsBundle
-}
-
-const config: Record<string, Env> = {
-  dev: {
-    chainId: 5,
-    relay: 'https://relay-goerli.flashbots.net/',
-  },
-  goerli: {
-    chainId: 5,
-    relay: 'https://relay-goerli.flashbots.net/',
-  },
-  mainnet: {
-    chainId: 1,
-    relay: 'https://relay-staging.flashbots.com/',
-  },
-}
-
-export const useFlashbots = () => {
-  const provider = useMemo(
-    () => new ethers.providers.Web3Provider(window.ethereum),
-    []
-  )
-
-  // Used for signing the bundle, just for reputation identification
-  // maybe we might save it accross sessions in the future
-  const bundleSigner = useMemo(() => ethers.Wallet.createRandom(), [])
-
-  // if PK was provided
-  //   owner signs the transactions in the bundle
-  // else
-  //   an ephemeral transaction signer is instanciated
-  //   and owner signs (eip-2612) permit allowance for weth bribe
-  //   and adds a last transact to the bundle
-  // for the ephemeral random transaction signer
-  console.log(import.meta)
-  const owner = useMemo(
-    () =>
-      import.meta.env.DEV
-        ? new ethers.Wallet(
-            import.meta.env.VITE_TEST_OWNER_PK as string,
-            provider
-          )
-        : provider.getSigner(),
-    [provider]
-  )
-
+// Used for signing the bundle, just for reputation identification
+// maybe we might save it accross sessions in the futur
+export const useFlashbots = (
+  bundleSigner = randomSigner,
+  relay = DEFAULT_FLASHBOTS_RELAY
+) => {
   const [flashbotsProvider, setFlashbotsProvider] =
     useState<FlashbotsBundleProvider | null>(null)
 
-  // current bundle
-  const [bundle, setBundle] = useState<FlashbotsBundle>([])
-
   useEffect(() => {
     FlashbotsBundleProvider.create(provider, bundleSigner, {
-      url: config[
-        import.meta.env.DEV ? 'dev' : 'still too risky to put mainnet here'
-      ].relay,
-      skipFetchSetup: true,
-      headers: {
-        'Sec-Fetch-Mode': 'no-cors',
-        'Sec-Fetch-Site': 'cross-site',
-      },
+      url: relay,
     }).then(setFlashbotsProvider)
-  }, [provider, bundleSigner])
+  }, [bundleSigner, relay])
 
   const signBundle = useCallback(
-    async (bundle: FlashbotsBundle) => {
+    async (bundle: StoredBundle) => {
       if (!flashbotsProvider) throw new Error('Flashbots Provider Required')
-      const signedBundle = await flashbotsProvider.signBundle(bundle)
+      const signedBundle = await flashbotsProvider.signBundle(
+        convertToFlashbotsBundle(bundle)
+      )
       return signedBundle
     },
     [flashbotsProvider]
   )
 
   const simulateBundle = useCallback(
-    async (blocksInTheFutur: number) => {
+    async (bundle: StoredBundle, blocksInTheFutur: number) => {
       if (!flashbotsProvider) throw new Error('Flashbots Provider Required')
 
       const blockNumber = await provider.getBlockNumber()
@@ -121,11 +69,12 @@ export const useFlashbots = () => {
       )
       return [simulation, undefined]
     },
-    [bundle, flashbotsProvider, provider, signBundle]
+    [flashbotsProvider, signBundle]
   )
 
   const sendBundle = useCallback(
     async (
+      bundle: StoredBundle,
       blocksInTheFutur: number,
       handleSubmission: (
         submission: FlashbotsTransaction
@@ -137,66 +86,41 @@ export const useFlashbots = () => {
       const blockNumber = await provider.getBlockNumber()
       const targetBlockNumber = blockNumber + blocksInTheFutur
 
-      // const signedBundle = await signBundle(bundle)
-      // const signedOrderedBundle = signedBundle.rawTxs.reverse()
-
-      const [, error] = await simulateBundle(blocksInTheFutur)
+      const [, error] = await simulateBundle(bundle, blocksInTheFutur)
       if (error) return
 
       provider.on('block', async (blockNumber) => {
         console.log(`Block #${blockNumber}`)
         const submission = await flashbotsProvider.sendBundle(
-          bundle,
+          convertToFlashbotsBundle(bundle),
           targetBlockNumber
         )
         await handleSubmission(submission)
         provider.off('block')
       })
     },
-    [bundle, flashbotsProvider, provider, simulateBundle]
+    [flashbotsProvider, simulateBundle]
   )
 
-  const getMaxBaseFee = useCallback(
-    async (blocksInTheFuture: number) => {
-      const block = await provider.getBlock(await provider.getBlockNumber())
+  const getMaxBaseFee = useCallback(async (blocksInTheFuture: number) => {
+    const block = await provider.getBlock(await provider.getBlockNumber())
 
-      const maxBaseFeeInFutureBlock = block.baseFeePerGas
-        ? FlashbotsBundleProvider.getMaxBaseFeeInFutureBlock(
-            block.baseFeePerGas,
-            blocksInTheFuture
-          )
-        : 0
-      return maxBaseFeeInFutureBlock
-    },
-    [provider]
-  )
-
-  const addTransaction = useCallback(
-    (tx: TransactionRequest) => {
-      setBundle([
-        ...bundle,
-        {
-          transaction: tx,
-          signer: owner,
-        },
-      ])
-    },
-    [bundle, owner]
-  )
-
-  const removeTransaction = useCallback(
-    (index: number) => setBundle(bundle.filter((_, i) => i !== index)),
-    [bundle]
-  )
+    const maxBaseFeeInFutureBlock = block.baseFeePerGas
+      ? FlashbotsBundleProvider.getMaxBaseFeeInFutureBlock(
+          block.baseFeePerGas,
+          blocksInTheFuture
+        )
+      : 0
+    return maxBaseFeeInFutureBlock
+  }, [])
 
   return {
-    bundle,
+    provider,
+    flashbotsProvider,
     signBundle,
     simulateBundle,
     sendBundle,
     getMaxBaseFee,
-    addTransaction,
-    removeTransaction,
   }
 }
 
