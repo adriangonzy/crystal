@@ -1,5 +1,7 @@
+import { MouseEvent } from 'react'
+
 export interface ButtonProps {
-  onClick?: () => void
+  onClick?: (e: MouseEvent) => void
   icon?: JSX.Element
   className?: string
 }

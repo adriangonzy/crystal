@@ -60,7 +60,7 @@ type BundleStoreState = {
 const find = (state: BundleStoreState, id: string) =>
   state.bundles.findIndex((e: StoredBundle) => e.id === id)
 
-export const useStore = create<BundleStoreState>(
+export const useBundles = create<BundleStoreState>(
   persist(
     immer((set) => ({
       bundles: new Array<StoredBundle>(),
@@ -74,7 +74,7 @@ export const useStore = create<BundleStoreState>(
         }),
       addTransaction: (id: string, tx: StoredTx) =>
         set((state) => {
-          return state.bundles[find(state, id)].transactions.push(tx)
+          state.bundles[find(state, id)].transactions.push(tx)
         }),
       removeTransaction: (id: string, index: number) =>
         set((state) => {

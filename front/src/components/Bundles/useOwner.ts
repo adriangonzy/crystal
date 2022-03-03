@@ -1,9 +1,11 @@
 import { ethers } from 'ethers'
 import { useMemo } from 'react'
 
+const provider = new ethers.providers.Web3Provider(window.ethereum)
+
 export const useOwner = () => {
-  const provider = useMemo(
-    () => new ethers.providers.Web3Provider(window.ethereum),
+  const delegateRandomOwner = useMemo(
+    () => ethers.Wallet.createRandom()._mnemonic,
     []
   )
 
@@ -21,8 +23,8 @@ export const useOwner = () => {
             import.meta.env.VITE_TEST_OWNER_PK as string,
             provider
           )
-        : provider.getSigner(),
-    [provider]
+        : delegateRandomOwner,
+    [delegateRandomOwner]
   )
   return owner
 }

@@ -2,7 +2,7 @@ import React from 'react'
 import { FieldError, UseFormRegisterReturn } from 'react-hook-form'
 
 export interface InputProps extends UseFormRegisterReturn {
-  type: 'text' | 'number'
+  type: 'text' | 'number' | 'password'
   label: string
   defaultValue?: string | number | readonly string[] | undefined
   error?: FieldError
@@ -19,7 +19,6 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
       errorMessage,
       // we dont want ref to be in rest otherwise it replaces the forwarded ref
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      // ref: unusedParentRef,
       ...rest
     },
     ref

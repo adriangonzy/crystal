@@ -1,11 +1,16 @@
+import { Networkish } from '@ethersproject/networks'
+import { BaseProvider } from '@ethersproject/providers'
+import { ConnectionInfo } from '@ethersproject/web'
 import {
   DEFAULT_FLASHBOTS_RELAY,
   FlashbotsBundleProvider,
+  FlashbotsBundleRawTransaction,
   FlashbotsBundleResolution,
+  FlashbotsBundleTransaction,
   FlashbotsTransaction,
   RelayResponseError,
 } from '@flashbots/ethers-provider-bundle'
-import { ethers } from 'ethers'
+import { ethers, Signer } from 'ethers'
 import { useCallback, useEffect, useState } from 'react'
 import { StoredBundle } from './useBundles'
 
@@ -17,6 +22,42 @@ const convertToFlashbotsBundle = (storedBundle: StoredBundle) => {
     signer: provider.getSigner(stx.signer),
     transaction: stx.transaction,
   }))
+}
+
+export interface ProxyCommand {
+  method: 'signBundle' | 'simulateBundle' | 'sendBundle'
+  bundle: StoredBundle
+  blocksInTheFuture: number
+}
+
+class ProxyFlashbotsBundleProvider extends FlashbotsBundleProvider {
+  constructor(
+    genericProvider: BaseProvider,
+    authSigner: Signer,
+    connectionInfoOrUrl: ConnectionInfo,
+    network: Networkish
+  ) {
+    super(genericProvider, authSigner, connectionInfoOrUrl, network)
+  }
+
+  signBundle(
+    bundle: (FlashbotsBundleTransaction | FlashbotsBundleRawTransaction)[]
+  ): Promise<string[]> {
+    return new Promise((resolve, reject) => {
+      const timer = setTimeout(() => reject(), 60000)
+      window.chrome.runtime.sendMessage(
+        import.meta.env.FLASHBOTS_PROXY_EXTENSION_ID as string,
+        {
+          method: 'signBundle',
+          bundle,
+        },
+        (response: any) => {
+          clearTimeout(timer)
+          resolve(response as string[])
+        }
+      )
+    })
+  }
 }
 
 // Used for signing the bundle, just for reputation identification

@@ -2,16 +2,18 @@ import { useEthers } from '@usedapp/core'
 import { TransactionRequest } from '@usedapp/core/node_modules/@ethersproject/providers'
 import { ethers } from 'ethers'
 import { useCallback } from 'react'
-import { useForm } from 'react-hook-form'
+import { FormProvider, useForm } from 'react-hook-form'
+import { BurnerWalletSelector } from '../BurnerWalletSelector/BurnerWalletSelector'
 import { Button } from '../Button/Button'
 import { Input } from '../Input/Input'
+
 export interface TransactionFormProps {
   submitLabel: string
   onSubmit: (tx: TransactionRequest, signer: string) => void
   getMaxBaseFee: (blocksInTheFuture: number) => Promise<ethers.BigNumber | 0>
 }
 
-type TransactionFormData = {
+export type TransactionFormData = {
   from: string
   to: string
   value: number
@@ -27,11 +29,12 @@ export const TransactionForm: React.FunctionComponent<TransactionFormProps> = ({
   onSubmit,
   getMaxBaseFee,
 }) => {
+  const { ...methods } = useForm<TransactionFormData>({})
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<TransactionFormData>()
+  } = methods
 
   const { chainId, account } = useEthers()
 
@@ -53,67 +56,55 @@ export const TransactionForm: React.FunctionComponent<TransactionFormProps> = ({
         },
         data.from
       )
-
-      // Make a simple request:
-      window.chrome.runtime.sendMessage(
-        'glgicjcangcpmfldioimjelcoonfjdpd',
-        { test: 'Ratillas' },
-        (response: any) => {
-          console.log(response)
-        }
-      )
     },
     [onSubmit, chainId, getMaxBaseFee]
   )
 
   return (
-    <form className="flex flex-col py-4 space-y-3 text-purple-700">
-      <Input
-        type="text"
-        label="Signer Address* (a.k.a From Address)"
-        {...register('from', { required: true, pattern: VALID_ETH_ADDRESS })}
-        error={errors.from}
-        errorMessage="Required - Must be a valid ETH address"
-        defaultValue={account ?? ''}
-      />
-      <Input
-        type="text"
-        label="Target Address*"
-        {...register('to', { required: true, pattern: VALID_ETH_ADDRESS })}
-        error={errors.to}
-        errorMessage="Required - Must be a valid ETH address"
-        defaultValue={account ?? ''}
-      />
-      <Input
-        type="number"
-        label="Value"
-        defaultValue={0}
-        {...register('value', { min: 0 })}
-        error={errors.value}
-        errorMessage="Must be a positive number or zero"
-      />
-      <Input
-        type="number"
-        label="Gas Limit (in GWEI)"
-        defaultValue={0}
-        {...register('gasLimit', { min: 0 })}
-        error={errors.gasLimit}
-        errorMessage="Must be a positive number or zero"
-      />
-      <Input
-        type="number"
-        label="Blocks in the Future"
-        defaultValue={0}
-        {...register('blocksFutur', { min: 0 })}
-        error={errors.blocksFutur}
-        errorMessage="Must be a positive number or zero"
-      />
-      <br />
-      <div className="mx-auto h-1/3">
-        <Button onClick={handleSubmit(onSubmitHandler)}>
-          <span className="font-bold uppercase">{submitLabel}</span>
-        </Button>
-      </div>
-    </form>
+    <FormProvider {...methods}>
+      <form className="flex flex-col py-4 space-y-3 text-purple-700">
+        <BurnerWalletSelector />
+        <Input
+          type="text"
+          label="Target Address*"
+          {...register('to', {
+            pattern: VALID_ETH_ADDRESS,
+          })}
+          error={errors.to}
+          errorMessage="Required - Must be a valid ETH address"
+          defaultValue={account ?? ''}
+        />
+        <Input
+          type="number"
+          label="Value"
+          {...register('value', { min: 0 })}
+          defaultValue={0}
+          error={errors.value}
+          errorMessage="Must be a positive number or zero"
+        />
+        <Input
+          type="number"
+          label="Gas Limit (in GWEI)"
+          {...register('gasLimit', { min: 0 })}
+          defaultValue={0}
+          error={errors.gasLimit}
+          errorMessage="Must be a positive number or zero"
+        />
+        <Input
+          type="number"
+          label="Blocks in the Future"
+          {...register('blocksFutur', { min: 0 })}
+          defaultValue={0}
+          error={errors.blocksFutur}
+          errorMessage="Must be a positive number or zero"
+        />
+        <br />
+        <div className="mx-auto h-1/3">
+          <Button onClick={handleSubmit(onSubmitHandler)}>
+            <span className="font-bold uppercase">{submitLabel}</span>
+          </Button>
+        </div>
+      </form>
+    </FormProvider>
   )
 }

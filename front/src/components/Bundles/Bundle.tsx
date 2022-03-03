@@ -9,7 +9,7 @@ import { ImLab } from 'react-icons/im'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '../Button/Button'
 import { TransactionItem } from '../TransactionItem/TransactionItem'
-import { StoredBundle, useStore } from './useBundles'
+import { StoredBundle, useBundles } from './useBundles'
 import { useFlashbots } from './useFlashbots'
 
 const handleSubmission = async (submission: FlashbotsTransaction) => {
@@ -40,7 +40,7 @@ export interface BundleProps {
 
 export const Bundle: React.FunctionComponent<BundleProps> = ({ bundle }) => {
   const navigate = useNavigate()
-  const { bundles, removeBundle, removeTransaction } = useStore()
+  const { bundles, removeBundle, removeTransaction } = useBundles()
   const { simulateBundle, sendBundle } = useFlashbots()
 
   const openLastByDefault = bundles[bundles.length - 1].id === bundle.id
@@ -93,16 +93,14 @@ export const Bundle: React.FunctionComponent<BundleProps> = ({ bundle }) => {
                   Add Transaction
                 </Button>
                 <Button
-                  onClick={() => simulateBundle(bundle.transactions, 1)}
+                  onClick={() => simulateBundle(bundle, 1)}
                   className="hover:bg-teal-500"
                   icon={<ImLab />}
                 >
                   Simulate
                 </Button>
                 <Button
-                  onClick={() =>
-                    sendBundle(bundle.transactions, 1, handleSubmission)
-                  }
+                  onClick={() => sendBundle(bundle, 1, handleSubmission)}
                   icon={<FiSend />}
                 >
                   Send

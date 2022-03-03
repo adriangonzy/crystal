@@ -3,10 +3,10 @@ import { Link, Outlet } from 'react-router-dom'
 import { Button } from '../Button/Button'
 import AppLayout from '../Layout/AppLayout'
 import { Bundle } from './Bundle'
-import { StoredBundle, useStore } from './useBundles'
+import { StoredBundle, useBundles } from './useBundles'
 
 export const Bundles = () => {
-  const { bundles } = useStore()
+  const { bundles } = useBundles()
 
   return (
     <AppLayout>
