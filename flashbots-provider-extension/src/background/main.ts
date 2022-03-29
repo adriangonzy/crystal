@@ -1,7 +1,6 @@
 import { sendMessage } from "webext-bridge";
 import browser from "webextension-polyfill";
-
-import { burnerWalletsListener } from "./burnerwallets";
+import { appListener } from "./app";
 
 // only on dev mode
 if (import.meta.hot) {
@@ -21,4 +20,4 @@ browser.browserAction.onClicked.addListener(async () => {
 });
 
 // Accounts management
-browser.runtime.onMessageExternal.addListener(burnerWalletsListener);
+browser.runtime.onMessageExternal.addListener(appListener);

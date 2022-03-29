@@ -1,4 +1,4 @@
-import { TransactionRequest } from '@usedapp/core/node_modules/@ethersproject/providers'
+import { TransactionRequest } from '@ethersproject/providers'
 import produce, { Draft } from 'immer'
 import create, {
   GetState,

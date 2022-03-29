@@ -1,167 +1,34 @@
-import { Networkish } from '@ethersproject/networks'
-import { BaseProvider } from '@ethersproject/providers'
-import { ConnectionInfo } from '@ethersproject/web'
-import {
-  DEFAULT_FLASHBOTS_RELAY,
-  FlashbotsBundleProvider,
-  FlashbotsBundleRawTransaction,
-  FlashbotsBundleResolution,
-  FlashbotsBundleTransaction,
-  FlashbotsTransaction,
-  RelayResponseError,
-} from '@flashbots/ethers-provider-bundle'
-import { ethers, Signer } from 'ethers'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback } from 'react'
+import { useBurnerWallets } from '../Extension/useBurnerWallets'
+import { useExtension } from '../Extension/useExtension'
 import { StoredBundle } from './useBundles'
-
-const randomSigner = ethers.Wallet.createRandom()
-const provider = new ethers.providers.Web3Provider(window.ethereum)
-
-const convertToFlashbotsBundle = (storedBundle: StoredBundle) => {
-  return storedBundle.transactions.map((stx) => ({
-    signer: provider.getSigner(stx.signer),
-    transaction: stx.transaction,
-  }))
-}
-
 export interface ProxyCommand {
   method: 'signBundle' | 'simulateBundle' | 'sendBundle'
   bundle: StoredBundle
   blocksInTheFuture: number
 }
 
-class ProxyFlashbotsBundleProvider extends FlashbotsBundleProvider {
-  constructor(
-    genericProvider: BaseProvider,
-    authSigner: Signer,
-    connectionInfoOrUrl: ConnectionInfo,
-    network: Networkish
-  ) {
-    super(genericProvider, authSigner, connectionInfoOrUrl, network)
-  }
-
-  signBundle(
-    bundle: (FlashbotsBundleTransaction | FlashbotsBundleRawTransaction)[]
-  ): Promise<string[]> {
-    return new Promise((resolve, reject) => {
-      const timer = setTimeout(() => reject(), 60000)
-      window.chrome.runtime.sendMessage(
-        import.meta.env.FLASHBOTS_PROXY_EXTENSION_ID as string,
-        {
-          method: 'signBundle',
-          bundle,
-        },
-        (response: any) => {
-          clearTimeout(timer)
-          resolve(response as string[])
-        }
-      )
-    })
-  }
-}
-
 // Used for signing the bundle, just for reputation identification
 // maybe we might save it accross sessions in the futur
-export const useFlashbots = (
-  bundleSigner = randomSigner,
-  relay = DEFAULT_FLASHBOTS_RELAY
-) => {
-  const [flashbotsProvider, setFlashbotsProvider] =
-    useState<FlashbotsBundleProvider | null>(null)
-
-  useEffect(() => {
-    FlashbotsBundleProvider.create(provider, bundleSigner, {
-      url: relay,
-    }).then(setFlashbotsProvider)
-  }, [bundleSigner, relay])
-
-  const signBundle = useCallback(
-    async (bundle: StoredBundle) => {
-      if (!flashbotsProvider) throw new Error('Flashbots Provider Required')
-      const signedBundle = await flashbotsProvider.signBundle(
-        convertToFlashbotsBundle(bundle)
-      )
-      return signedBundle
-    },
-    [flashbotsProvider]
-  )
+export const useFlashbots = () => {
+  const { sendMessage, extensionInstalled } = useExtension()
+  const { isInitialized, isUnlocked } = useBurnerWallets()
 
   const simulateBundle = useCallback(
-    async (bundle: StoredBundle, blocksInTheFutur: number) => {
-      if (!flashbotsProvider) throw new Error('Flashbots Provider Required')
-
-      const blockNumber = await provider.getBlockNumber()
-      const targetBlockNumber = blockNumber + blocksInTheFutur
-
-      const simulation = await flashbotsProvider.simulate(
-        await signBundle(bundle),
-        targetBlockNumber
-      )
-      if ('error' in simulation) {
-        window.alert(
-          'There was some error in the flashbots simulation, please read the bundle receipt'
-        )
-        console.error(simulation.error)
-        return [simulation, simulation.error]
-      }
-      window.alert(
-        'Flashbots simulation was a success: ' +
-          JSON.stringify(simulation, null, 2)
-      )
-      return [simulation, undefined]
-    },
-    [flashbotsProvider, signBundle]
-  )
-
-  const sendBundle = useCallback(
-    async (
-      bundle: StoredBundle,
-      blocksInTheFutur: number,
-      handleSubmission: (
-        submission: FlashbotsTransaction
-      ) => Promise<FlashbotsBundleResolution | RelayResponseError>
-    ) => {
-      if (!flashbotsProvider) throw new Error('Flashbots Provider Required')
-
-      provider.off('block')
-      const blockNumber = await provider.getBlockNumber()
-      const targetBlockNumber = blockNumber + blocksInTheFutur
-
-      const [, error] = await simulateBundle(bundle, blocksInTheFutur)
-      if (error) return
-
-      provider.on('block', async (blockNumber) => {
-        console.log(`Block #${blockNumber}`)
-        const submission = await flashbotsProvider.sendBundle(
-          convertToFlashbotsBundle(bundle),
-          targetBlockNumber
-        )
-        await handleSubmission(submission)
-        provider.off('block')
+    async (bundle: StoredBundle) => {
+      if (!isInitialized || !isUnlocked || !extensionInstalled) return
+      const response = await sendMessage({
+        method: 'simulate',
+        payload: bundle,
       })
+      console.log(response)
+      return response
     },
-    [flashbotsProvider, simulateBundle]
+    [extensionInstalled, isInitialized, isUnlocked, sendMessage]
   )
-
-  const getMaxBaseFee = useCallback(async (blocksInTheFuture: number) => {
-    const block = await provider.getBlock(await provider.getBlockNumber())
-
-    const maxBaseFeeInFutureBlock = block.baseFeePerGas
-      ? FlashbotsBundleProvider.getMaxBaseFeeInFutureBlock(
-          block.baseFeePerGas,
-          blocksInTheFuture
-        )
-      : 0
-    return maxBaseFeeInFutureBlock
-  }, [])
 
   return {
-    provider,
-    flashbotsProvider,
-    signBundle,
     simulateBundle,
-    sendBundle,
-    getMaxBaseFee,
   }
 }
 

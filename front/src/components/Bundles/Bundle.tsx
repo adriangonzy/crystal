@@ -1,7 +1,3 @@
-import {
-  FlashbotsBundleResolution,
-  FlashbotsTransaction,
-} from '@flashbots/ethers-provider-bundle'
 import { Disclosure } from '@headlessui/react'
 import { CgChevronDownR, CgMathPlus, CgTrashEmpty } from 'react-icons/cg'
 import { FiSend } from 'react-icons/fi'
@@ -12,28 +8,6 @@ import { TransactionItem } from '../TransactionItem/TransactionItem'
 import { StoredBundle, useBundles } from './useBundles'
 import { useFlashbots } from './useFlashbots'
 
-const handleSubmission = async (submission: FlashbotsTransaction) => {
-  if ('error' in submission) {
-    window.alert(
-      'There was some error in the flashbots submission, please read the bundle receipt'
-    )
-    console.error(submission.error)
-    return submission
-  }
-  const waitSubmission = await submission.wait()
-
-  console.log(FlashbotsBundleResolution[waitSubmission])
-
-  if (waitSubmission === FlashbotsBundleResolution.BundleIncluded) {
-    window.alert(
-      'Your Bundle just got mined!, read the bundle receipt and visit etherscan to verify!'
-    )
-  } else if (waitSubmission === FlashbotsBundleResolution.AccountNonceTooHigh) {
-    window.alert('Flashbots encountered an error: AccountNonceTooHigh')
-  }
-  return waitSubmission
-}
-
 export interface BundleProps {
   bundle: StoredBundle
 }
@@ -41,7 +15,7 @@ export interface BundleProps {
 export const Bundle: React.FunctionComponent<BundleProps> = ({ bundle }) => {
   const navigate = useNavigate()
   const { bundles, removeBundle, removeTransaction } = useBundles()
-  const { simulateBundle, sendBundle } = useFlashbots()
+  const { simulateBundle } = useFlashbots()
 
   const openLastByDefault = bundles[bundles.length - 1].id === bundle.id
 
@@ -93,16 +67,13 @@ export const Bundle: React.FunctionComponent<BundleProps> = ({ bundle }) => {
                   Add Transaction
                 </Button>
                 <Button
-                  onClick={() => simulateBundle(bundle, 1)}
+                  onClick={() => simulateBundle(bundle)}
                   className="hover:bg-teal-500"
                   icon={<ImLab />}
                 >
                   Simulate
                 </Button>
-                <Button
-                  onClick={() => sendBundle(bundle, 1, handleSubmission)}
-                  icon={<FiSend />}
-                >
+                <Button onClick={() => alert('TODO')} icon={<FiSend />}>
                   Send
                 </Button>
               </div>
