@@ -3,9 +3,9 @@ import { simulateBundle } from "./flashbots";
 import {
   reset,
   savePassword,
+  deleteWallet,
   checkPassword,
   getStoredPasswordHash,
-  deleteWallet,
   addRandomBurnerWallet,
   getBurnerWalletsAddresses,
 } from "./wallets";
