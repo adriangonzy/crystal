@@ -4,21 +4,22 @@ module.exports = {
     es2021: true,
   },
   extends: [
-    'react-app',
-    'plugin:jsx-a11y/recommended',
-    'prettier',
-    'plugin:react-hooks/recommended',
+    "react-app",
+    "plugin:jsx-a11y/recommended",
+    "prettier",
+    "plugin:react-hooks/recommended",
   ],
-  parser: '@typescript-eslint/parser',
+  parser: "@typescript-eslint/parser",
   parserOptions: {
     ecmaFeatures: {
       jsx: true,
     },
     ecmaVersion: 12,
-    sourceType: 'module',
-    tsconfigRootDir: './',
-    project: './tsconfig.json',
+    sourceType: "module",
+    tsconfigRootDir: __dirname,
+    project: "./tsconfig.json",
   },
-  plugins: ['react', 'jsx-a11y'],
+  ignorePatterns: [".eslintrc.js"],
+  plugins: ["react", "jsx-a11y"],
   rules: {},
-}
+};

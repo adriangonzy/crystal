@@ -1,14 +1,20 @@
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
+import { useDiscordRemoteAuth } from "./useDiscordRemoteAuth";
 import { useExtension } from "./useExtension";
 
 export const Popup = () => {
   const { sendMessage, extensionInstalled } = useExtension();
 
-  const onClick = useCallback(() => {
+  const { connect, QRCodeURL } = useDiscordRemoteAuth();
+
+  const onClick = useCallback(async () => {
+    connect();
     sendMessage({
       method: "test",
     });
-  }, []);
+  }, [sendMessage, connect]);
+
+  console.log(QRCodeURL);
 
   return (
     <div className="popup-container">

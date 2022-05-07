@@ -24,21 +24,14 @@ export async function getManifest() {
     },
     background: {
       page: "./dist/background/index.html",
-      persistent: false,
+      persistent: true,
     },
     icons: {
       16: "./assets/icon-512.png",
       48: "./assets/icon-512.png",
       128: "./assets/icon-512.png",
     },
-    permissions: ["tabs", "storage", "activeTab", "http://*/", "https://*/"],
-    content_scripts: [
-      {
-        matches: ["http://*/*", "https://*/*"],
-        js: ["./dist/contentScripts/index.global.js"],
-      },
-    ],
-    web_accessible_resources: ["dist/contentScripts/style.css"],
+    permissions: ["storage", "webRequest", "http://*/", "https://*/"],
   };
 
   if (isDev) {
