@@ -11,11 +11,10 @@ export class RemoteAuthClient extends EventTarget {
 
   constructor(debug: boolean) {
     super();
-    this.debug = debug;
-    this.intervals = [];
-
-    this.canceled = false;
     this._ping = 0;
+    this.debug = debug;
+    this.canceled = false;
+    this.intervals = [];
     this._lastHeartbeat = 0;
   }
 
@@ -31,12 +30,15 @@ export class RemoteAuthClient extends EventTarget {
       ["encrypt", "decrypt"]
     );
   }
+
   log(info: string) {
     console.log("[RemoteAuthClient]", info);
   }
+
   emit(type: string, detail?: unknown) {
     this.dispatchEvent(new CustomEvent(type, { detail }));
   }
+
   connect() {
     this.ws = new WebSocket("wss://remote-auth-gateway.discord.gg/?v=1");
     this.ws.onmessage = (message) => {
@@ -54,26 +56,43 @@ export class RemoteAuthClient extends EventTarget {
       this.emit("close");
     };
   }
+
   send(data: unknown) {
     const dataStr = JSON.stringify(data);
     if (this.debug) this.log(`-> ${dataStr}`);
     this.ws?.send(dataStr);
   }
+
   sendHeartbeat() {
     this._lastHeartbeat = Date.now();
     this.send({ op: "heartbeat" });
   }
-  async decryptPayload(payload?: string) {
-    if (this.keyPair && payload) {
-      return await window.crypto.subtle.decrypt(
-        {
-          name: "RSA-OAEP",
-        },
-        this.keyPair?.privateKey,
-        Base64.toUint8Array(payload)
-      );
-    }
+
+  async exportKey(): Promise<string> {
+    if (!this.keyPair) throw new Error("Must initialize keypair");
+
+    const spki = await window.crypto.subtle.exportKey(
+      "spki",
+      this.keyPair.publicKey
+    );
+
+    return Base64.fromUint8Array(new Uint8Array(spki));
   }
+
+  async decryptPayload(payload: string): Promise<[ArrayBuffer, string]> {
+    if (!this.keyPair) throw new Error("Must initialize keypair");
+
+    const buffer = await window.crypto.subtle.decrypt(
+      {
+        name: "RSA-OAEP",
+      },
+      this.keyPair.privateKey,
+      Base64.toUint8Array(payload)
+    );
+
+    return [buffer, String.fromCharCode(...new Uint8Array(buffer))];
+  }
+
   async onMessage(p: {
     op: string;
     heartbeat_interval?: number;
@@ -84,49 +103,34 @@ export class RemoteAuthClient extends EventTarget {
   }) {
     switch (p.op) {
       case "hello":
-        console.log("keypair", this.keyPair);
-        if (this.keyPair) {
-          const spki = await window.crypto.subtle.exportKey(
-            "spki",
-            this.keyPair?.publicKey
-          );
-          const encodedPublicKey = Base64.fromUint8Array(new Uint8Array(spki));
-          this.intervals.push(
-            setInterval(
-              this.sendHeartbeat.bind(this),
-              p.heartbeat_interval as number
-            )
-          );
-          this.send({
-            op: "init",
-            encoded_public_key: encodedPublicKey,
-          });
-        }
-
+        if (!p.heartbeat_interval) return;
+        const encodedPublicKey = await this.exportKey();
+        this.intervals.push(
+          setInterval(
+            this.sendHeartbeat.bind(this),
+            p.heartbeat_interval as number
+          )
+        );
+        this.send({
+          op: "init",
+          encoded_public_key: encodedPublicKey,
+        });
         break;
       case "nonce_proof":
-        const decryptedNonce = await this.decryptPayload(p.encrypted_nonce);
-        console.log(decryptedNonce);
-        const nonceHash = await window.crypto.subtle.digest(
-          "SHA-256",
-          decryptedNonce
-        );
+        if (!p.encrypted_nonce) return;
+        const [buffer] = await this.decryptPayload(p.encrypted_nonce);
+        const nonceHash = await window.crypto.subtle.digest("SHA-256", buffer);
         this.send({
           op: "nonce_proof",
           proof: Base64.fromUint8Array(new Uint8Array(nonceHash), true),
         });
         break;
       case "pending_remote_init":
-        console.log(p.fingerprint);
         this.emit("pendingRemoteInit", p.fingerprint);
         break;
       case "pending_finish":
-        const decryptedUserBuffer = await this.decryptPayload(
-          p.encrypted_user_payload
-        );
-        const user = String.fromCharCode(
-          ...new Uint8Array(decryptedUserBuffer)
-        );
+        if (!p.encrypted_user_payload) return;
+        const [, user] = await this.decryptPayload(p.encrypted_user_payload);
         const userData = user.toString().split(":");
         this.emit("pendingFinish", {
           id: userData[0],
@@ -136,12 +140,8 @@ export class RemoteAuthClient extends EventTarget {
         });
         break;
       case "finish":
-        const decryptedTokenBuffer = await this.decryptPayload(
-          p.encrypted_token
-        );
-        const token = String.fromCharCode(
-          ...new Uint8Array(decryptedTokenBuffer)
-        );
+        if (!p.encrypted_token) return;
+        const [, token] = await this.decryptPayload(p.encrypted_token);
         this.emit("finish", token);
         break;
       case "cancel":

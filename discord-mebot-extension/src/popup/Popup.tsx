@@ -1,28 +1,9 @@
-import { useCallback, useEffect } from "react";
-import { useDiscordRemoteAuth } from "./useDiscordRemoteAuth";
-import { useExtension } from "./useExtension";
+import { useAuth } from "./features/auth/AuthProvider";
 
 export const Popup = () => {
-  const { sendMessage, extensionInstalled } = useExtension();
+  const { user } = useAuth();
 
-  const { connect, QRCodeURL } = useDiscordRemoteAuth();
-
-  const onClick = useCallback(async () => {
-    connect();
-    sendMessage({
-      method: "test",
-    });
-  }, [sendMessage, connect]);
-
-  console.log(QRCodeURL);
-
-  return (
-    <div className="popup-container">
-      <button className="btn" onClick={onClick}>
-        Send Message
-      </button>
-    </div>
-  );
+  return <div className="popup-container">POPUP YO AFTER LOGIN {{ user }}</div>;
 };
 
 // TODO:
