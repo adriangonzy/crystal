@@ -1,9 +1,15 @@
 import { useAuth } from "./features/auth/AuthProvider";
+import { useDiscordApi } from "./features/discord/api/useDiscordApi";
 
 export const Popup = () => {
   const { user } = useAuth();
+  useDiscordApi();
 
-  return <div className="popup-container">POPUP YO AFTER LOGIN {{ user }}</div>;
+  return (
+    <div className="popup-container">
+      <h1 className="text-lg text-white">Hi {user?.user.username} !</h1>
+    </div>
+  );
 };
 
 // TODO:

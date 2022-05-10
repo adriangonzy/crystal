@@ -1,4 +1,3 @@
-import { encodeURL } from "js-base64";
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import { createSearchParams, useNavigate } from "react-router-dom";
 import {
@@ -46,6 +45,7 @@ interface AuthContextType {
   user: StoredUser | null;
   signin: (callback: VoidFunction) => Promise<void>;
   signout: (callback: VoidFunction) => Promise<void>;
+  loading: boolean;
 }
 
 let AuthContext = React.createContext<AuthContextType>(null!);
@@ -118,7 +118,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     callback();
   };
 
-  const value = { user, signin, signout };
+  const value = { user, signin, signout, loading };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { useAuth } from "./AuthProvider";
 
@@ -15,6 +15,10 @@ export const LoginPage = () => {
     () => (location.state as LocationState)?.from?.pathname || "/",
     [location.state]
   );
+
+  useEffect(() => {
+    if (auth.user) navigate("/");
+  }, [auth.user, navigate]);
 
   const handleSubmit = useCallback(
     (event: React.MouseEvent) => {
@@ -34,10 +38,11 @@ export const LoginPage = () => {
   );
 
   return (
-    <>
+    <div className="popup-container">
+      {auth.loading && <h1>Loading...</h1>}
       <h1>{qrcode ? "Scan" : ""}</h1>
       {!qrcode && <button onClick={handleSubmit}>LOGIN</button>}
       {qrcode && <img alt="qrcode" src={qrcode} />}
-    </>
+    </div>
   );
 };

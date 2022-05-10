@@ -1,28 +1,47 @@
-html,
-body,
-#app {
-  margin: 0;
-  padding: 0;
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-.popup-container {
-  width: 200px;
-}
+@layer components {
+  .popup-container {
+    height: 500px;
+    width: 282px;
+    border: 2px solid white;
+    padding: 10px;
+    @apply bg-gradient;
+  }
+  .bg-gradient {
+    background: linear-gradient(
+        45deg,
+        #fde68a,
+        #fcd34d,
+        #f87171,
+        #d946ef,
+        #38bdf8,
+        #2dd4bf,
+        #2dd4bf
+      )
+      0% 0% / 500% 500%;
+    animation: 30s ease 0s infinite normal none running gradient;
+  }
 
-.btn {
-  border: 1px solid black;
-  padding: 8px 12px;
-  display: block;
-  margin: 10px auto;
-}
+  @keyframes gradient {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
 
-.btn:hover {
-  background-color: blue;
-  color: white;
-  border-color: white;
-  cursor: pointer;
-}
-
-.icon-btn {
-  font-size: 0.9em;
+  .no-scroll-bars {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .no-scroll-bars::-webkit-scrollbar {
+    display: none;
+  }
 }
